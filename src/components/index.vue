@@ -1,12 +1,19 @@
 <template>
   <div>
-    <Button type="primary" @click="add">增加</Button>
+    <Row>
+      <i-col span="8" push="1">
+        <Input search enter-button placeholder="输入学号，根据学号查找" v-model="searchValue" @on-search="search"/>
+      </i-col>
+      <i-col span="5">
+        <Button type="primary" @click="add">增加</Button>
+      </i-col>
+    </Row>
     <Table border :columns="columns" :data="studentLists" style="margin-top: 30px">
       <template slot-scope="{ row }" slot="name">
         <strong>{{ row.name }}</strong>
       </template>
       <template slot-scope="{ row, index }" slot="action">
-        <Button type="primary" size="small" style="margin-right: 5px" @click="show(index)">编辑</Button>
+        <Button type="primary" size="small" style="margin-right: 5px" @click="update(index)">编辑</Button>
         <Button type="error" size="small" @click="remove(index)">删除</Button>
       </template>
     </Table>
@@ -25,8 +32,8 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="handleSubmit('formData')">提交</Button>
-        <Button @click="handleReset('formData')" style="margin-left: 8px">取消</Button>
+        <Button type="primary" @click="confirmAdd('formData')">提交</Button>
+        <Button @click="cancelAdd('formData')" style="margin-left: 8px">取消</Button>
       </div>
     </Modal>
     <Modal
@@ -44,11 +51,13 @@
         </FormItem>
       </Form>
       <div slot="footer">
-        <Button type="primary" @click="handleSubmit('formData')">提交</Button>
-        <Button @click="handleReset('formData')" style="margin-left: 8px">取消</Button>
+        <Button type="primary" @click="confirmUpdate('formData')">提交</Button>
+        <Button @click="cancelUpdate('formData')" style="margin-left: 8px">取消</Button>
       </div>
     </Modal>
-    <Modal v-model="showDeleteModal" width="360">
+    <Modal
+      v-model="showDeleteModal"
+      width="360">
       <p slot="header" style="color:#f60;text-align:center">
           <Icon type="ios-information-circle"></Icon>
           <span>删除提醒</span>
@@ -58,7 +67,8 @@
           <p>您确认删除?</p>
       </div>
       <div slot="footer">
-          <Button type="error" size="large" long @click="confirmDelete">删除</Button>
+        <Button type="error" @click="confirmDelete()">删除</Button>
+        <Button @click="cancelDelete()" style="margin-left: 8px">取消</Button>
       </div>
     </Modal>
   </div>
@@ -88,10 +98,10 @@ export default {
         }
       ],
       studentLists: [],
-      columnName: [],
       showAddModal: false,
       showUpdateModal: false,
       showDeleteModal: false,
+      searchValue: '',
       formData: {
         userName: '',
         passWord: '',
@@ -114,22 +124,6 @@ export default {
     this.getData()
   },
   methods: {
-    show (index) {
-      this.showUpdateModal = true
-      this.formData = this.studentLists[index]
-    },
-    remove (index) {
-      this.showDeleteModal = true
-      this.formData = this.studentLists[index]
-      console.log(this.studentLists[index])
-      // this.$Modal.info(config)
-    },
-    confirmDelete () {
-      // this.$Modal.info(config)
-      this.$http.delete('/deleteStudent').then(res => {
-        console.log(res)
-      })
-    },
     getData () {
       this.$http.get('/studentList').then(res => {
         this.studentLists = res.data.data
@@ -137,26 +131,84 @@ export default {
     },
     add () {
       this.showAddModal = true
+      // this.formData = []
     },
-    handleSubmit (name) {
+    update (index) {
+      this.showUpdateModal = true
+      this.formData = this.studentLists[index]
+    },
+    remove (index) {
+      this.showDeleteModal = true
+      this.formData = this.studentLists[index]
+    },
+    // 向后台提交
+    confirmAdd (name) {
       this.$refs[name].validate((valid) => {
         if (valid) {
           this.$http.post('/insertStudent', JSON.stringify(this.formData)).then(res => {
-            console.log(JSON.stringify(this.formData))
-            if (res.data.data.state === 200) {
+            this.showAddModal = false
+            if (res.data.state === 200) {
               this.getData()
+              this.$Message.success('Success!')
             }
-            console.log(res)
           })
-          // this.$Message.success('Success!')
         } else {
           this.$Message.error('Fail!')
         }
       })
     },
-    handleReset (name) {
-      this.$refs.formData.resetFields()
+    cancelAdd (name) {
+      this.$refs[name].resetFields()
       this.showAddModal = false
+    },
+    confirmUpdate (name) {
+      this.$refs[name].validate((valid) => {
+        if (valid) {
+          this.$http.post('/insertStudent', JSON.stringify(this.formData)).then(res => {
+            this.showUpdateModal = false
+            if (res.data.state === 200) {
+              this.getData()
+              this.formData.userName = ''
+              this.formData.passWord = ''
+              this.formData.stuNum = ''
+              this.$Message.success('Success!')
+            }
+          })
+        } else {
+          this.$Message.error('Fail!')
+        }
+      })
+    },
+    cancelUpdate (name) {
+      this.showUpdateModal = false
+      // this.$refs[name].resetFields()
+    },
+    confirmDelete () {
+      this.$http.post('/deleteStudent', JSON.stringify(this.formData)).then(res => {
+        this.showDeleteModal = false
+        if (res.data.state === 200) {
+          this.getData()
+          this.$Message.success('Success!')
+        } else if (res.data.state === 500) {
+          this.$Message.error('Fail!')
+        }
+      })
+    },
+    cancelDelete () {
+      this.$Message.success('取消删除!')
+      this.showDeleteModal = false
+    },
+    search () {
+      let params = {
+        stuNum: this.searchValue
+      }
+      this.$http.get('/searchStudent', params).then(res => {
+        if (res.status === 200) {
+          // let student = []
+          // student.push(res.data)
+          this.studentLists = res.data
+        }
+      })
     }
   }
 }

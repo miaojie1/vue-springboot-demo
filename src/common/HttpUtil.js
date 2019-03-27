@@ -1,62 +1,96 @@
 var axios = require('axios')
+// var Qs = require('qs')
 // 本地
-var root = 'http://127.0.0.1:8080/demo'
-function httpApi (method, url, params) {
-  return new Promise((resolve, reject) => {
-    // 设置超时时间
-    // axios.defaults.retry = 4
-    // axios.defaults.retryDelay = 1000
-    // axios.defaults.timeout = 20000
-    // 添加请求拦截器
-    axios.interceptors.request.use(config => {
-      // 在发送请求之前做些什么
-      return config
-    }, error => {
-      // this.$Message.warning('请求超时！')
-      // 对请求错误做些什么
-      return Promise.reject(error)
-    })
-    axios.interceptors.response.use(data => {
-      if (data.status !== 200) {
-      }
-      return data
-    }, error => {
-      if (error.response.status === 504 || error.response.status === 404) {
-        // this.$Message.warning('服务器被吃了⊙﹏⊙∥ ')
-      }
-      // 对请求错误做些什么
-      return error
-    })
-    axios({
-      method: method,
-      url: url,
-      data: method === 'POST' || method === 'PUT' || method === 'DELETE' ? params : null,
-      params: method === 'GET' ? params : null,
-      baseURL: root,
-      withCredentials: true
-    }).then((res) => {
-      resolve(res)
-    }).catch((err) => {
-      if (err.code === 'ECONNABORTED' && err.message.indexOf('timeout') !== -1) {
-        // that.$message('请求超时！')
-      } else {
-        // that.$message('请求出错了！')
-      }
-      reject(err)
-    })
-  })
-}
+var root = 'http://127.0.0.1:8083/demo'
+// axios.defaults.paramsSerializer = (params) => {
+//   return Qs.stringify(params, {arrayFormat: 'brackets'})
+// }
 export default{
   get: function (url, params) {
-    return httpApi('GET', url, params)
-  },
-  post: function (url, params) {
-    return httpApi('POST', url, params)
+    return new Promise((resolve, reject) => {
+      axios({
+        method: 'GET',
+        url: url,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        params: params,
+        baseURL: root,
+        withCredentials: true
+      }).then((res) => {
+        resolve(res)
+      }).catch((err) => {
+        reject(err)
+      })
+    })
   },
   put: function (url, params) {
-    return httpApi('PUT', url, params)
+    return new Promise((resolve, reject) => {
+      // 设置超时时间
+      // axios.defaults.retry = 4
+      // axios.defaults.retryDelay = 1000
+      // axios.defaults.timeout = 20000
+      // 添加请求拦截器
+      axios({
+        method: 'PUT',
+        url: url,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        data: params,
+        baseURL: root,
+        withCredentials: true
+      }).then((res) => {
+        resolve(res)
+      }).catch((err) => {
+        reject(err)
+      })
+    })
   },
   delete: function (url, params) {
-    return httpApi('DELETE', url, params)
+    return new Promise((resolve, reject) => {
+      // 设置超时时间
+      // axios.defaults.retry = 4
+      // axios.defaults.retryDelay = 1000
+      // axios.defaults.timeout = 20000
+      // 添加请求拦截器
+      axios({
+        method: 'DELETE',
+        url: url,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        params: params,
+        baseURL: root,
+        withCredentials: true
+      }).then((res) => {
+        resolve(res)
+      }).catch((err) => {
+        reject(err)
+      })
+    })
+  },
+  post: function (url, params) {
+    return new Promise((resolve, reject) => {
+      // 设置超时时间
+      // axios.defaults.retry = 4
+      // axios.defaults.retryDelay = 1000
+      // axios.defaults.timeout = 20000
+      // 添加请求拦截器
+      axios({
+        method: 'POST',
+        url: url,
+        headers: {
+          'Content-Type': 'application/json; charset=utf-8'
+        },
+        data: params,
+        baseURL: root,
+        withCredentials: true
+      }).then((res) => {
+        resolve(res)
+      }).catch((err) => {
+        reject(err)
+      })
+    })
   }
 }
