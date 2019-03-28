@@ -202,10 +202,8 @@ export default {
       let params = {
         stuNum: this.searchValue
       }
-      this.$http.get('/searchStudent', params).then(res => {
+      this.$http.get('/searchStudentList', params).then(res => {
         if (res.status === 200) {
-          // let student = []
-          // student.push(res.data)
           this.studentLists = res.data
         }
       })
